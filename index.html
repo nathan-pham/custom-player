@@ -77,6 +77,7 @@
             background: #fff;
             height: 100%;
             width: 0;
+            transition: width 0.1s ease-out;
         }
 
         .controls .audio {
@@ -133,21 +134,24 @@
 
         const player = $(".player")
         const video = $(player, "video")
-        const progress = $(player, ".progress .bar")
         const [ start, finish ] = $(player, ".timestamp span")
         const [ play, volume, settings ] = $(player, ".controls .control")
+
+        const progress = $(player, ".progress")
+        const bar = $(progress, ".bar")
 
         let paused = true
 
         video.addEventListener("loadedmetadata", () => {
             const [ minutes, seconds ] = formatTime(video.duration)
             finish.textContent = `${minutes}:${seconds}`
+            
             addEventListeners()
         })
 
         video.addEventListener("timeupdate", () => {
             const [ minutes, seconds ] = formatTime(video.currentTime)
-            progress.style.width = `${video.currentTime * 100 / video.duration}%`
+            bar.style.width = `${video.currentTime * 100 / video.duration}%`
             start.textContent = `${minutes}:${seconds}`
         })
 
@@ -166,6 +170,14 @@
                     play.innerHTML = "<ion-icon name='pause'></ion-icon>"
                     video.play()
                 }
+            })
+
+            progress.addEventListener("click", (e) => {
+                const rect = e.target.getBoundingClientRect()
+                const x = e.clientX - rect.left
+
+                const percent = x / rect.width
+                video.currentTime = video.duration * percent
             })
         }
 
