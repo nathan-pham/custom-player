@@ -47,27 +47,50 @@
             right: 0;
             border-radius: 0.5rem;
             margin: 1rem;
-            padding: 0.5rem;
+            padding: 0.75rem 0.5rem;
             overflow: hidden;
             color: #fff;
             background: rgba(0, 0, 0, 0.75);
         }
 
         .controls .control {
+            display: flex;
+            align-items: center;
             background: none;
             outline: none;
             border: none;
             color: #fff;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            cursor: pointer;
         }
 
         .controls .progress {
-            width: 50%;
+            width: 100%;
             height: 0.5rem;
-            background: #fff;
+            margin: 0 1rem 0 0.5rem;
+            background: #59575fa4;
             border-radius: 1rem;
+            overflow: hidden;
         }
 
+        .controls .progress .bar {
+            background: #fff;
+            height: 100%;
+            width: 0;
+        }
+
+        .controls .audio {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            margin-left: 0.5rem;
+        }
+ 
+        .controls .timestamp {
+            font-size: 1rem;
+            white-space: nowrap;
+            font-family: sans-serif;
+        }
     </style>
 </head>
 <body>
@@ -75,8 +98,6 @@
         <div class="player">
             <video src="/melting_tunnel_loop.mov" type="video/mp4" width="100%" height="100%"></video>
 
-            <div class="glass"></div>
-            
             <div class="controls">
                 <button class="control play">
                     <ion-icon name="play"></ion-icon>
@@ -92,13 +113,67 @@
                     <button class="control"><ion-icon name="volume-high"></ion-icon></button>
                     <!-- <input type="range" name="volume" class="slider" min="0" max="1" step="0.05" value="1" /> -->
                 </div>
+
+                <button class="control settings">
+                    <ion-icon name="settings-sharp"></ion-icon>
+                </button>
             </div>
         </div>
     </main>
 
     <script src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <script>
+        const $ = (query, root) => {
+            const nodes = typeof query == "string" 
+                ? document.querySelectorAll(query) 
+                : query.querySelectorAll(root)
+        
+            return nodes.length > 1 ? [...nodes] : nodes[0]
+        }
 
+        const player = $(".player")
+        const video = $(player, "video")
+        const progress = $(player, ".progress .bar")
+        const [ start, finish ] = $(player, ".timestamp span")
+        const [ play, volume, settings ] = $(player, ".controls .control")
+
+        let paused = true
+
+        video.addEventListener("loadedmetadata", () => {
+            const [ minutes, seconds ] = formatTime(video.duration)
+            finish.textContent = `${minutes}:${seconds}`
+            addEventListeners()
+        })
+
+        video.addEventListener("timeupdate", () => {
+            const [ minutes, seconds ] = formatTime(video.currentTime)
+            progress.style.width = `${video.currentTime * 100 / video.duration}%`
+            start.textContent = `${minutes}:${seconds}`
+        })
+
+        video.addEventListener("ended", () => {
+            play.click()
+        })
+
+        function addEventListeners() {
+            play.addEventListener("click", () => {
+                paused = !paused
+
+                if(paused) {
+                    play.innerHTML = "<ion-icon name='play'></ion-icon>"
+                    video.pause()
+                } else {
+                    play.innerHTML = "<ion-icon name='pause'></ion-icon>"
+                    video.play()
+                }
+            })
+        }
+
+        function formatTime(time=0) {
+            const minutes = new String(parseInt(time / 60, 10)).padStart(2, "0")
+            const seconds = new String(parseInt(time % 60)).padStart(2, "0")
+            return [minutes, seconds]
+        }
     </script>
 </body>
 </html>
