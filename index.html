@@ -21,7 +21,6 @@
 
         #root {
             height: 100vh;
-            padding: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -36,21 +35,40 @@
             position: relative;
             background: #000;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+            transition: width 0.3s ease, height 0.3s ease, border-radius 0.3s ease;
+        }
+
+        .player.fullscreen {
+            max-width: 100vw;
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .player video {
+            object-fit: contain;
         }
 
         .controls {
             display: flex;
             align-items: center;
             position: absolute;
-            bottom: 0;
-            left: 0;
+            opacity: 0;
             right: 0;
+            left: 0;
+            bottom: 0;
             border-radius: 0.5rem;
             margin: 1rem;
             padding: 0.75rem 0.5rem;
             overflow: hidden;
             color: #fff;
             background: rgba(0, 0, 0, 0.75);
+            transition: opacity 0.3s ease;
+        }
+
+        .player:hover .controls {
+            opacity: 1;
         }
 
         .controls .control {
@@ -112,8 +130,8 @@
 
                 <button class="control audio"><ion-icon name="volume-high"></ion-icon></button>
 
-                <button class="control settings">
-                    <ion-icon name="settings-sharp"></ion-icon>
+                <button class="control ftoggle">
+                    <ion-icon name="square-outline"></ion-icon>
                 </button>
             </div>
         </div>
@@ -132,14 +150,15 @@
         const player = $(".player")
         const video = $(player, "video")
         const [ start, finish ] = $(player, ".timestamp span")
-        const [ play, volume, settings ] = $(player, ".controls .control")
+        const [ play, volume, ftoggle ] = $(player, ".controls .control")
 
         const progress = $(player, ".progress")
         const bar = $(progress, ".bar")
 
         let paused = true
         let volumeIndex = 0
-
+        let fullscreen = false
+        
         video.addEventListener("loadedmetadata", () => {
             const [ minutes, seconds ] = formatTime(video.duration)
             finish.textContent = `${minutes}:${seconds}`
@@ -191,12 +210,37 @@
                 volume.innerHTML = icons[volumeIndex]
                 video.volume = 1 - (volumeIndex / (icons.length - 1))
             })
+
+            ftoggle.addEventListener("click", () => {
+                fullscreen = !fullscreen
+                toggleFullscreen(fullscreen)
+            })
+
+            document.addEventListener("fullscreenchange", () => {
+                if(!document.fullscreenElement && fullscreen) {
+                    fullscreen = !fullscreen
+                    player.classList.remove("fullscreen")
+                    document.body.style.background = "#fff"
+                }
+            })
         }
 
         function formatTime(time=0) {
             const minutes = new String(parseInt(time / 60, 10)).padStart(2, "0")
             const seconds = new String(parseInt(time % 60)).padStart(2, "0")
             return [minutes, seconds]
+        }
+
+        function toggleFullscreen(open=true) {
+            if(open) {
+                document.documentElement.requestFullscreen()
+                player.classList.add("fullscreen")
+                document.body.style.background = "#000"
+            } else {
+                document.exitFullscreen()
+                player.classList.remove("fullscreen")
+                document.body.style.background = "#fff"
+            }
         }
     </script>
 </body>
