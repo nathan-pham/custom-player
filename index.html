@@ -110,10 +110,7 @@
                     <span>00:00</span> / <span>00:00</span>
                 </div>
 
-                <div class="audio">
-                    <button class="control"><ion-icon name="volume-high"></ion-icon></button>
-                    <!-- <input type="range" name="volume" class="slider" min="0" max="1" step="0.05" value="1" /> -->
-                </div>
+                <button class="control audio"><ion-icon name="volume-high"></ion-icon></button>
 
                 <button class="control settings">
                     <ion-icon name="settings-sharp"></ion-icon>
@@ -141,6 +138,7 @@
         const bar = $(progress, ".bar")
 
         let paused = true
+        let volumeIndex = 0
 
         video.addEventListener("loadedmetadata", () => {
             const [ minutes, seconds ] = formatTime(video.duration)
@@ -178,6 +176,20 @@
 
                 const percent = x / rect.width
                 video.currentTime = video.duration * percent
+            })
+
+
+            const icons = [
+                `<ion-icon name="volume-high"></ion-icon>`,
+                `<ion-icon name="volume-medium"></ion-icon>`,
+                `<ion-icon name="volume-low"></ion-icon>`,
+                `<ion-icon name="volume-mute"></ion-icon>`
+            ]
+
+            volume.addEventListener("click", () => {
+                volumeIndex = (volumeIndex + 1) % icons.length
+                volume.innerHTML = icons[volumeIndex]
+                video.volume = 1 - (volumeIndex / (icons.length - 1))
             })
         }
 
